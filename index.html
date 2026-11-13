@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Vendas | EdCalhas</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: ['class', '[data-theme="dark"]'],
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            50: '#fff7ed',
+            100: '#ffedd5',
+            400: '#fb923c',
+            500: '#f97316',
+            600: '#ea580c',
+            700: '#c2410c',
+            glow: 'rgba(249, 115, 22, 0.25)'
+          },
+          dark: {
+            bg: '#090b0e',
+            surface: '#11141a',
+            surface2: '#181c24',
+            surface3: '#222733',
+            border: '#2b3140',
+            text: '#f3f4f6',
+            muted: '#9ca3af'
+          }
+        },
+        fontFamily: {
+          sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+        }
+      }
+    }
+  };
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(249, 115, 22, 0.65); }
+
+  .glass-header {
+    background: rgba(17, 20, 26, 0.88);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+  html:not([data-theme="dark"]) .glass-header {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .tab-btn.active {
+    background-color: #f97316;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @media (max-width: 680px) {
+    .responsive-table thead { display: none; }
+    .responsive-table tbody tr {
+      display: flex;
+      flex-direction: column;
+      background: rgba(24, 28, 36, 0.55);
+      border: 1px solid rgba(156, 163, 175, 0.2);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      gap: 6px;
+    }
+    html:not([data-theme="dark"]) .responsive-table tbody tr {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+    .responsive-table tbody tr:has(td.empty-cell) {
+      background: transparent;
+      border-style: dashed;
+      text-align: center;
+    }
+    .responsive-table tbody td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0 !important;
+      border: none !important;
+      text-align: right;
+      gap: 12px;
+    }
+    .responsive-table tbody td.empty-cell {
+      display: block;
+      text-align: center;
+    }
+    .responsive-table tbody td::before {
+      content: attr(data-label);
+      font-weight: 800;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #9ca3af;
+      text-align: left;
+      flex-shrink: 0;
+    }
+    .responsive-table tbody td.empty-cell::before {
+      display: none;
+    }
+    .responsive-table tfoot tr {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(249, 115, 22, 0.35);
+      background: rgba(249, 115, 22, 0.08);
+    }
+    .responsive-table tfoot td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2px 0 !important;
+    }
+    .responsive-table tfoot td[data-label]::before {
+      content: attr(data-label);
+      font-weight: 800;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      color: #9ca3af;
+    }
+  }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-dark-bg dark:text-dark-text min-h-screen flex flex-col antialiased transition-colors duration-200">
+
+<!-- ==================== HEADER STICKY ==================== -->
+<header class="glass-header sticky top-0 z-50 border-b border-slate-200 dark:border-dark-border">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20 gap-4">
+
+      <!-- Logo & Status -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-500 text-white font-black text-lg sm:text-xl flex items-center justify-center shadow-lg shadow-brand-glow flex-shrink-0">
+          ED
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="font-black text-sm sm:text-lg tracking-tight truncate">Controle de Vendas</h1>
+            <span id="syncStatus" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-200/80 dark:bg-dark-surface3 text-slate-600 dark:text-dark-muted inline-flex items-center gap-1.5 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-current"></span> Sincronizando...
+            </span>
+          </div>
+          <p class="text-[11px] sm:text-xs text-slate-500 dark:text-dark-muted font-medium truncate mt-0.5">Edcalhas • Controle de Venda: Kits e Peças</p>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation & Theme Toggle -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <nav class="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-dark-surface2 p-1.5 rounded-2xl border border-slate-200 dark:border-dark-border" role="tablist">
+          <button type="button" class="tab-btn active px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2" data-tab="vendas">
+            <span></span> Vendas
+          </button>
+          <button type="button" class="tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 text-slate-600 dark:text-dark-muted hover:text-slate-900 dark:hover:text-white" data-tab="dashboard">
+            <span></span> Dashboard
+          </button>
+          <button type="button" class="tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 text-slate-600 dark:text-dark-muted hover:text-slate-900 dark:hover:text-white" data-tab="relatorio">
+            <span></span> Relatório
+          </button>
+          <button type="button" class="tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 text-slate-600 dark:text-dark-muted hover:text-slate-900 dark:hover:text-white" data-tab="skus">
+            <span></span> Catálogo <span id="skuBadge" class="bg-black/10 dark:bg-white/10 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+          </button>
+        </nav>
+
+        <button type="button" id="themeToggle" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border flex items-center justify-center text-base hover:border-brand-500 transition-all shadow-sm flex-shrink-0" title="Alternar Tema Claro / Escuro">
+          ☀️
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Bar -->
+  <div class="md:hidden grid grid-cols-4 gap-1 bg-slate-100 dark:bg-dark-surface2 border-t border-slate-200 dark:border-dark-border px-2 py-1.5">
+    <button type="button" class="tab-btn active py-2 px-1 rounded-xl text-center text-[11px] font-extrabold transition-all" data-tab="vendas">Vendas</button>
+    <button type="button" class="tab-btn py-2 px-1 rounded-xl text-center text-[11px] font-extrabold text-slate-600 dark:text-dark-muted transition-all" data-tab="dashboard">Painel</button>
+    <button type="button" class="tab-btn py-2 px-1 rounded-xl text-center text-[11px] font-extrabold text-slate-600 dark:text-dark-muted transition-all" data-tab="relatorio">Relatório</button>
+    <button type="button" class="tab-btn py-2 px-1 rounded-xl text-center text-[11px] font-extrabold text-slate-600 dark:text-dark-muted transition-all" data-tab="skus">Catálogo</button>
+  </div>
+</header>
+
+<!-- ==================== MAIN CONTENT ==================== -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 w-full">
+
+  <!-- ==================== ABA 1: VENDAS ==================== -->
+  <section id="tab-vendas" class="tab-panel animate-fade-in">
+
+    <div id="emptyCatalogAlert" class="hidden mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-between gap-4 flex-wrap">
+      <div class="flex items-center gap-3">
+        <span class="text-xl">⚠️</span>
+        <span class="text-xs sm:text-sm font-bold">Nenhuma SKU encontrada no catálogo. Cadastre ou inicialize suas SKUs para lançar vendas.</span>
+      </div>
+      <button type="button" id="goToSkusBtn" class="px-4 py-2 rounded-xl bg-amber-500 text-white text-xs font-extrabold hover:bg-amber-600 transition">Ir para Catálogo →</button>
+    </div>
+
+    <!-- Card Lançamento Rápido -->
+    <div class="mb-8 p-5 sm:p-7 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-xl relative">
+      <div class="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+        <div class="absolute -right-14 -top-14 w-52 h-52 rounded-full bg-brand-500/10 blur-2xl"></div>
+      </div>
+
+      <div class="flex items-center justify-between gap-4 mb-4 flex-wrap relative z-10">
+        <div>
+          <h2 class="text-base sm:text-lg font-black tracking-tight">⚡ Lançamento Rápido de Venda</h2>
+          <p class="text-xs text-slate-500 dark:text-dark-muted mt-0.5">Toque em um prefixo ou digite o início do código (ex.: <span class="font-mono font-bold text-brand-500">B</span>, <span class="font-mono font-bold text-brand-500">BPU</span>, <span class="font-mono font-bold text-brand-500">G100</span>)</p>
+        </div>
+        <div id="preview" class="px-4 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-600 dark:text-brand-400 font-extrabold text-xs">
+          0 peça(s)
+        </div>
+      </div>
+
+      <!-- Chips Dinâmicos de Prefixos -->
+      <div id="skuPrefixChips" class="flex items-center gap-1.5 flex-wrap mb-5 relative z-10"></div>
+
+      <form id="saleForm" class="relative z-20">
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+
+          <!-- Campo Autocompletar SKU -->
+          <div class="sm:col-span-5 relative" id="skuAutocompleteWrapper">
+            <label for="saleSkuSearch" class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted mb-1.5">SKU do Produto / Kit</label>
+            <input type="hidden" id="saleSkuSelect">
+            <div class="relative">
+              <input
+                id="saleSkuSearch"
+                type="text"
+                autocomplete="off"
+                placeholder="Digite B, BPU, G100 ou selecione..."
+                class="w-full h-12 pl-3.5 pr-10 rounded-xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs sm:text-sm font-bold focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-glow transition"
+              >
+              <button
+                type="button"
+                id="clearSkuSearchBtn"
+                title="Limpar SKU"
+                class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-lg bg-slate-200 dark:bg-dark-surface3 text-slate-700 dark:text-slate-200 hover:bg-rose-500 hover:text-white text-xs font-black flex items-center justify-center transition"
+              >×</button>
+            </div>
+
+            <!-- Dropdown de Variações -->
+            <div
+              id="skuDropdown"
+              class="hidden absolute left-0 right-0 top-full mt-2 max-h-72 overflow-y-auto rounded-2xl bg-white dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border shadow-2xl z-50 divide-y divide-slate-100 dark:divide-dark-border/60"
+            ></div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="qty" class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted mb-1.5">Quantidade</label>
+            <input
+              id="qty"
+              type="number"
+              min="1"
+              step="1"
+              required
+              placeholder="Ex.: 2"
+              class="w-full h-12 px-3.5 rounded-xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs sm:text-sm font-bold focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-glow transition"
+            >
+          </div>
+
+          <div class="sm:col-span-3">
+            <label for="date" class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted mb-1.5">Data da Venda</label>
+            <input
+              id="date"
+              type="date"
+              required
+              class="w-full h-12 px-3.5 rounded-xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs sm:text-sm font-bold focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-glow transition"
+            >
+          </div>
+
+          <div class="sm:col-span-2">
+            <button type="submit" class="w-full h-12 bg-gradient-to-r from-brand-600 to-brand-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-brand-glow hover:translate-y-[-1px] transition">
+              + Lançar
+            </button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+
+    <!-- KPIs do Mês -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="p-5 rounded-2xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm relative overflow-hidden">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-500"></div>
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted">Kits Vendidos (Mês)</div>
+        <div id="monthSales" class="text-2xl sm:text-3xl font-black mt-2 text-brand-600 dark:text-brand-500">0</div>
+      </div>
+      <div class="p-5 rounded-2xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm relative overflow-hidden">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-500"></div>
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted">Total de Peças (Mês)</div>
+        <div id="monthPieces" class="text-2xl sm:text-3xl font-black mt-2 text-brand-600 dark:text-brand-500">0</div>
+      </div>
+      <div class="p-5 rounded-2xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted">Lançamentos</div>
+        <div id="monthRows" class="text-2xl sm:text-3xl font-black mt-2">0</div>
+      </div>
+      <div class="p-5 rounded-2xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted">Dias Ativos</div>
+        <div id="monthDays" class="text-2xl sm:text-3xl font-black mt-2">0</div>
+      </div>
+    </div>
+
+    <!-- Filtros do Resumo Diário -->
+    <div class="flex items-end justify-between gap-4 mb-5 flex-wrap">
+      <div>
+        <h2 class="text-base sm:text-lg font-black tracking-tight">Resumo Diário</h2>
+        <p class="text-xs text-slate-500 dark:text-dark-muted">Totais agrupados por dia e SKU do mês selecionado</p>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap w-full sm:w-auto">
+        <input id="searchFilter" type="text" placeholder="Filtrar SKU ou categoria..." class="flex-1 sm:w-56 h-10 px-3.5 rounded-xl bg-white dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-medium focus:outline-none focus:border-brand-500">
+        <input id="monthFilter" type="month" class="h-10 px-3.5 rounded-xl bg-white dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold focus:outline-none focus:border-brand-500">
+      </div>
+    </div>
+
+    <div id="daily"></div>
+
+    <!-- Histórico Individual do Mês -->
+    <div class="mt-8 p-5 sm:p-7 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+      <div class="flex items-center justify-between gap-4 mb-5 flex-wrap">
+        <div>
+          <h2 class="text-base font-black tracking-tight">Histórico do Mês</h2>
+          <p class="text-xs text-slate-500 dark:text-dark-muted">Registros individuais efetuados no mês selecionado</p>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button type="button" id="exportMonth" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold hover:border-brand-500 transition">Exportar Mês (CSV)</button>
+          <button type="button" id="clearAll" class="px-3.5 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold hover:bg-rose-500 hover:text-white transition">Limpar Mês</button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm responsive-table">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-dark-border text-[11px] font-extrabold uppercase text-slate-400">
+              <th class="py-3 px-3">Data</th>
+              <th class="py-3 px-3">Categoria</th>
+              <th class="py-3 px-3">SKU</th>
+              <th class="py-3 px-3">Variação</th>
+              <th class="py-3 px-3 text-right">Peças/Kit</th>
+              <th class="py-3 px-3 text-right">Qtd.</th>
+              <th class="py-3 px-3 text-right">Total Peças</th>
+              <th class="py-3 px-3 text-right">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="rows" class="divide-y divide-slate-100 dark:divide-dark-border/50"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ==================== ABA 2: DASHBOARD ==================== -->
+  <section id="tab-dashboard" class="tab-panel hidden animate-fade-in">
+
+    <div class="flex items-end justify-between gap-4 mb-6 flex-wrap">
+      <div>
+        <h2 class="text-lg sm:text-xl font-black tracking-tight">Dashboard Geral (Desde o 1º Lançamento)</h2>
+        <p id="allTimeRange" class="text-xs text-slate-500 dark:text-dark-muted">Visão consolidada de todo o histórico registrado</p>
+      </div>
+      <button type="button" id="exportAll" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold hover:border-brand-500 transition">Exportar Tudo (CSV)</button>
+    </div>
+
+    <!-- KPIs Acumulados -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="p-5 rounded-2xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm relative overflow-hidden">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-500"></div>
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted">Total Geral de Kits</div>
+        <div id="allSales" class="text-2xl sm:text-3xl font-black mt-2 text-brand-600 dark:text-brand-500">0</div>
+        <div id="allAvgMonth" class="text-[11px] text-slate-400 mt-1">Média: 0/mês</div>
+      </div>
+      <div class="p-5 rounded-2xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm relative overflow-hidden">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-500"></div>
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted">Total Geral de Peças</div>
+        <div id="allPieces" class="text-2xl sm:text-3xl font-black mt-2 text-brand-600 dark:text-brand-500">0</div>
+        <div id="allAvgPieces" class="text-[11px] text-slate-400 mt-1">Média: 0 pçs/mês</div>
+      </div>
+      <div class="p-5 rounded-2xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted">Total de Lançamentos</div>
+        <div id="allRows" class="text-2xl sm:text-3xl font-black mt-2">0</div>
+        <div id="allDays" class="text-[11px] text-slate-400 mt-1">Em 0 dias ativos</div>
+      </div>
+      <div class="p-5 rounded-2xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted">Meses Registrados</div>
+        <div id="allMonthsCount" class="text-2xl sm:text-3xl font-black mt-2">0</div>
+        <div id="bestMonthLabel" class="text-[11px] text-slate-400 mt-1">Melhor mês: -</div>
+      </div>
+    </div>
+
+    <!-- Gráfico de Evolução & Top SKUs -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div class="lg:col-span-2 p-5 sm:p-7 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-black uppercase tracking-wider">Evolução Mensal (Peças Vendidas)</h3>
+          <span class="text-xs text-slate-400">Comparativo mês a mês</span>
+        </div>
+        <div id="monthlyChart" class="flex items-end gap-3 h-64 pt-8 pb-2 overflow-x-auto border-b border-slate-200 dark:border-dark-border"></div>
+      </div>
+
+      <div class="p-5 sm:p-7 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-black uppercase tracking-wider">Top SKUs (Acumulado)</h3>
+          <span class="text-xs text-slate-400">Mais vendidas</span>
+        </div>
+        <div id="topSkusList" class="divide-y divide-slate-100 dark:divide-dark-border/50"></div>
+      </div>
+    </div>
+
+    <!-- Resumo Separado por Meses -->
+    <div class="p-5 sm:p-7 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm mb-8">
+      <div class="mb-4">
+        <h3 class="text-base font-black tracking-tight">Resumo Separado por Meses</h3>
+        <p class="text-xs text-slate-500 dark:text-dark-muted">Clique em "Ver mês →" para abrir os lançamentos detalhados daquele mês</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm responsive-table">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-dark-border text-[11px] font-extrabold uppercase text-slate-400">
+              <th class="py-3 px-3">Mês / Ano</th>
+              <th class="py-3 px-3 text-right">Dias Ativos</th>
+              <th class="py-3 px-3 text-right">Lançamentos</th>
+              <th class="py-3 px-3 text-right">Kits Vendidos</th>
+              <th class="py-3 px-3 text-right">Total de Peças</th>
+              <th class="py-3 px-3 text-right">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="monthlyTableRows" class="divide-y divide-slate-100 dark:divide-dark-border/50"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Histórico Completo -->
+    <div class="p-5 sm:p-7 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+      <div class="flex items-center justify-between gap-4 mb-4 flex-wrap">
+        <div>
+          <h3 class="text-base font-black tracking-tight">Histórico Completo (Desde o 1º Lançamento)</h3>
+          <p class="text-xs text-slate-500 dark:text-dark-muted">Todos os lançamentos já feitos no sistema</p>
+        </div>
+        <input id="allSearchFilter" type="text" placeholder="Filtrar histórico geral..." class="w-full sm:w-60 h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-medium focus:outline-none focus:border-brand-500">
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm responsive-table">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-dark-border text-[11px] font-extrabold uppercase text-slate-400">
+              <th class="py-3 px-3">Data</th>
+              <th class="py-3 px-3">Categoria</th>
+              <th class="py-3 px-3">SKU</th>
+              <th class="py-3 px-3">Variação</th>
+              <th class="py-3 px-3 text-right">Peças/Kit</th>
+              <th class="py-3 px-3 text-right">Qtd.</th>
+              <th class="py-3 px-3 text-right">Total Peças</th>
+            </tr>
+          </thead>
+          <tbody id="allHistoryRows" class="divide-y divide-slate-100 dark:divide-dark-border/50"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ==================== ABA 3: RELATÓRIO ==================== -->
+  <section id="tab-relatorio" class="tab-panel hidden animate-fade-in">
+
+    <div class="p-5 sm:p-7 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm mb-8">
+      <div class="flex items-end justify-between gap-4 mb-6 flex-wrap">
+        <div>
+          <h2 class="text-lg sm:text-xl font-black tracking-tight">Relatório de Vendas por Mês e Dia</h2>
+          <p class="text-xs text-slate-500 dark:text-dark-muted mt-0.5">Selecione o mês ou um dia específico para ver todas as quantidades vendidas por SKU</p>
+        </div>
+        <button type="button" id="exportReportCsv" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold hover:border-brand-500 transition">
+          📥 Exportar Relatório (CSV)
+        </button>
+      </div>
+
+      <!-- Filtros do Relatório -->
+      <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border mb-6 items-end">
+        <div class="sm:col-span-3">
+          <label for="reportMonthFilter" class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted mb-1">Mês</label>
+          <input id="reportMonthFilter" type="month" class="w-full h-11 px-3.5 rounded-xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border text-xs font-bold focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div class="sm:col-span-4">
+          <label for="reportDayFilter" class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted mb-1">Filtrar por Dia Específico</label>
+          <div class="flex items-center gap-2">
+            <input id="reportDayFilter" type="date" class="w-full h-11 px-3.5 rounded-xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border text-xs font-bold focus:outline-none focus:border-brand-500">
+            <button type="button" id="clearReportDayBtn" class="hidden h-11 px-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-extrabold hover:bg-rose-500 hover:text-white transition whitespace-nowrap">
+              Limpar dia
+            </button>
+          </div>
+        </div>
+
+        <div class="sm:col-span-5">
+          <label for="reportSearchFilter" class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted mb-1">Buscar SKU / Categoria</label>
+          <input id="reportSearchFilter" type="text" placeholder="Ex.: BPU, G100, Branco..." class="w-full h-11 px-3.5 rounded-xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border text-xs font-medium focus:outline-none focus:border-brand-500">
+        </div>
+      </div>
+
+      <!-- KPIs do Relatório -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border relative overflow-hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-500"></div>
+          <div class="text-[10.5px] font-extrabold uppercase text-slate-400">Kits Vendidos no Período</div>
+          <div id="reportKits" class="text-2xl font-black mt-1 text-brand-600 dark:text-brand-500">0</div>
+        </div>
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border relative overflow-hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-500"></div>
+          <div class="text-[10.5px] font-extrabold uppercase text-slate-400">Total de Peças</div>
+          <div id="reportPieces" class="text-2xl font-black mt-1 text-brand-600 dark:text-brand-500">0</div>
+        </div>
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border">
+          <div class="text-[10.5px] font-extrabold uppercase text-slate-400">Lançamentos</div>
+          <div id="reportLaunches" class="text-2xl font-black mt-1">0</div>
+        </div>
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border">
+          <div class="text-[10.5px] font-extrabold uppercase text-slate-400">SKUs Movimentadas</div>
+          <div id="reportSkusCount" class="text-2xl font-black mt-1">0</div>
+        </div>
+      </div>
+
+      <div id="reportSubtitle" class="text-xs font-bold text-slate-600 dark:text-dark-muted mb-4">Consolidado do período</div>
+
+      <!-- Tabela Consolidada por SKU -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm responsive-table">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-dark-border text-[11px] font-extrabold uppercase text-slate-400">
+              <th class="py-3 px-3">Categoria</th>
+              <th class="py-3 px-3">SKU</th>
+              <th class="py-3 px-3">Variação</th>
+              <th class="py-3 px-3 text-right">Peças/Kit</th>
+              <th class="py-3 px-3 text-right">Qtd. Vendida</th>
+              <th class="py-3 px-3 text-right">Total Peças</th>
+              <th class="py-3 px-3 text-right">Lançamentos</th>
+            </tr>
+          </thead>
+          <tbody id="reportConsolidatedBody" class="divide-y divide-slate-100 dark:divide-dark-border/50"></tbody>
+          <tfoot id="reportConsolidatedFoot" class="font-extrabold"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Lista Cronológica Detalhada do Período -->
+    <div class="p-5 sm:p-7 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+      <div class="flex items-center justify-between gap-4 mb-4 flex-wrap">
+        <div>
+          <h3 class="text-base font-black tracking-tight">Lançamentos Detalhados do Período</h3>
+          <p class="text-xs text-slate-500 dark:text-dark-muted">Lista cronológica de todas as vendas filtradas acima</p>
+        </div>
+        <span id="reportDetailBadge" class="px-3 py-1 rounded-full bg-slate-100 dark:bg-dark-surface2 text-xs font-bold">0 registro(s)</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm responsive-table">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-dark-border text-[11px] font-extrabold uppercase text-slate-400">
+              <th class="py-3 px-3">Data</th>
+              <th class="py-3 px-3">Categoria</th>
+              <th class="py-3 px-3">SKU</th>
+              <th class="py-3 px-3">Variação</th>
+              <th class="py-3 px-3 text-right">Peças/Kit</th>
+              <th class="py-3 px-3 text-right">Qtd.</th>
+              <th class="py-3 px-3 text-right">Total Peças</th>
+            </tr>
+          </thead>
+          <tbody id="reportDetailBody" class="divide-y divide-slate-100 dark:divide-dark-border/50"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ==================== ABA 4: CATÁLOGO DE SKUS ==================== -->
+  <section id="tab-skus" class="tab-panel hidden animate-fade-in">
+
+    <div class="p-5 sm:p-7 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm mb-8">
+      <h2 id="skuFormTitle" class="text-base sm:text-lg font-black tracking-tight mb-4">Cadastrar SKU / Kit</h2>
+      <form id="skuForm">
+        <input type="hidden" id="editSkuId">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div>
+            <label for="catCategory" class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted mb-1.5">Categoria</label>
+            <input id="catCategory" list="categorySuggestions" required placeholder="Ex.: KITS COMUNS • BRANCO" class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-medium focus:outline-none focus:border-brand-500">
+            <datalist id="categorySuggestions"></datalist>
+          </div>
+          <div>
+            <label for="catSku" class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted mb-1.5">Código SKU</label>
+            <input id="catSku" required placeholder="Ex.: G100" class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold uppercase focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label for="catPu" class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted mb-1.5">Variação</label>
+            <select id="catPu" class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold focus:outline-none focus:border-brand-500">
+              <option>Sem PU</option>
+              <option>Com PU</option>
+            </select>
+          </div>
+          <div>
+            <label for="catPieces" class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-dark-muted mb-1.5">Peças no Kit</label>
+            <input id="catPieces" type="number" min="1" step="1" required placeholder="Ex.: 100" class="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold focus:outline-none focus:border-brand-500">
+          </div>
+        </div>
+        <div class="flex items-center gap-3 mt-5">
+          <button type="submit" id="saveSkuBtn" class="px-6 h-11 bg-gradient-to-r from-brand-600 to-brand-500 text-white font-black text-xs rounded-xl shadow-lg shadow-brand-glow hover:translate-y-[-1px] transition">Salvar SKU</button>
+          <button type="button" id="cancelEditSkuBtn" class="hidden px-5 h-11 rounded-xl bg-slate-100 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold hover:border-brand-500 transition">Cancelar</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="flex items-end justify-between gap-4 mb-5 flex-wrap">
+      <div>
+        <h2 class="text-base sm:text-lg font-black tracking-tight">SKUs Cadastradas por Categoria</h2>
+        <p class="text-xs text-slate-500 dark:text-dark-muted">Organizadas alfabeticamente e numericamente dentro de cada categoria</p>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button type="button" id="backupBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold hover:border-brand-500 transition">Salvar Backup (JSON)</button>
+        <button type="button" id="restoreBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold hover:border-brand-500 transition">Restaurar Backup</button>
+        <input type="file" id="restoreFile" accept=".json" class="hidden">
+      </div>
+    </div>
+
+    <div id="skuCategoriesContainer" class="space-y-6"></div>
+
+  </section>
+
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="mt-auto border-t border-slate-200 dark:border-dark-border py-6 bg-white dark:bg-dark-surface">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-dark-muted">
+    <div><span class="font-black text-slate-900 dark:text-white">ED CALHAS LTDA</span> • KitFlow Gestão de Kits & Peças</div>
+    <div>Sincronização em Tempo Real • Cache Offline Ativo</div>
+  </div>
+</footer>
+
+<!-- ==================== MODAL CUSTOMIZADO ==================== -->
+<div id="customModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/65 backdrop-blur-sm">
+  <div class="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-2xl animate-fade-in">
+    <h3 id="modalTitle" class="text-base font-black mb-2">Atenção</h3>
+    <p id="modalMessage" class="text-xs sm:text-sm text-slate-600 dark:text-dark-muted mb-6 whitespace-pre-line">Mensagem</p>
+    <div class="flex items-center justify-end gap-3">
+      <button type="button" id="modalCancelBtn" class="hidden px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-dark-surface2 border border-slate-200 dark:border-dark-border text-xs font-bold hover:border-brand-500 transition">Cancelar</button>
+      <button type="button" id="modalOkBtn" class="px-5 py-2.5 rounded-xl bg-brand-500 text-white text-xs font-extrabold hover:bg-brand-600 transition shadow-sm">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TOAST ==================== -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-extrabold text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-2xl transform translate-y-24 opacity-0 pointer-events-none transition-all duration-300 max-w-sm"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  set,
+  push,
+  remove,
+  onValue,
+  runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// ==================== CONFIGURAÇÃO FIREBASE ====================
+const firebaseConfig = {
+  apiKey: "AIzaSyBNPYVWUUdX2L7moZy929TKwicmY3rVc0A",
+  authDomain: "consumo-de-insumos.firebaseapp.com",
+  databaseURL: "https://consumo-de-insumos-default-rtdb.firebaseio.com",
+  projectId: "consumo-de-insumos",
+  storageBucket: "consumo-de-insumos.firebasestorage.app",
+  messagingSenderId: "701588764840",
+  appId: "1:701588764840:web:2130c8dffb8c4325592a9d"
+};
+
+const STORAGE_SALES = 'controleVendasV2_sales';
+const STORAGE_SKUS  = 'controleVendasV2_skus';
+const STORAGE_THEME = 'controleVendas_theme';
+const FIXED_CATALOG_VERSION = 1;
+
+const $ = id => document.getElementById(id);
+
+let sales = [];
+let skus = [];
+let db = null;
+let skusRef = null;
+let salesRef = null;
+let isCloudOnline = false;
+let fixedCatalogInitStarted = false;
+
+let dropdownMatches = [];
+let dropdownActiveIdx = -1;
+let activePrefix = '';
+
+// ==================== UTILITÁRIOS CORE ====================
+const collator = new Intl.Collator('pt-BR', { numeric: true, sensitivity: 'base' });
+
+function localDate(d = new Date()) {
+  const x = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return x.toISOString().slice(0, 10);
+}
+
+function fmt(n) {
+  return Number(n || 0).toLocaleString('pt-BR');
+}
+
+function totalPieces(item) {
+  return Number(item?.pieces || 0) * Number(item?.qty || 0);
+}
+
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[c]));
+}
+
+function formatMonthName(ym) {
+  if (!ym || ym.length < 7) return ym || '-';
+  const [y, m] = ym.split('-');
+  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  return `${months[Number(m) - 1] || m}/${y}`;
+}
+
+function sortSkusList(list) {
+  return [...list].sort((a, b) => {
+    const catCmp = collator.compare(a.category || 'Geral', b.category || 'Geral');
+    if (catCmp !== 0) return catCmp;
+    const skuCmp = collator.compare(a.sku || '', b.sku || '');
+    if (skuCmp !== 0) return skuCmp;
+    return collator.compare(a.pu || '', b.pu || '');
+  });
+}
+
+function getSaleCategory(s) {
+  if (s.category) return s.category;
+  const match = skus.find(k => String(k.sku).toUpperCase() === String(s.sku).toUpperCase() && k.pu === s.pu);
+  return match ? match.category : 'Geral';
+}
+
+function showToast(msg) {
+  const t = $('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.remove('translate-y-24', 'opacity-0');
+  t.classList.add('translate-y-0', 'opacity-100');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.classList.add('translate-y-24', 'opacity-0');
+    t.classList.remove('translate-y-0', 'opacity-100');
+  }, 2600);
+}
+
+function showModal(title, message, isConfirm = false, onConfirm = null) {
+  const modal = $('customModal');
+  const titleEl = $('modalTitle');
+  const msgEl = $('modalMessage');
+  const cancelBtn = $('modalCancelBtn');
+  const okBtn = $('modalOkBtn');
+
+  if (!modal) return;
+  titleEl.textContent = title;
+  msgEl.textContent = message;
+
+  if (isConfirm) {
+    cancelBtn.classList.remove('hidden');
+    okBtn.textContent = 'Confirmar';
+  } else {
+    cancelBtn.classList.add('hidden');
+    okBtn.textContent = 'OK';
+  }
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+
+  const close = () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  };
+
+  cancelBtn.onclick = close;
+  okBtn.onclick = async () => {
+    close();
+    if (typeof onConfirm === 'function') {
+      await onConfirm();
+    }
+  };
+}
+
+// ==================== TEMA CLARO / ESCURO ====================
+function applyTheme(theme) {
+  const btn = $('themeToggle');
+  if (theme === 'light') {
+    document.documentElement.removeAttribute('data-theme');
+    if (btn) btn.textContent = '🌙';
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    if (btn) btn.textContent = '☀️';
+  }
+  try {
+    localStorage.setItem(STORAGE_THEME, theme);
+  } catch (e) {}
+}
+
+let savedTheme = 'dark';
+try {
+  savedTheme = localStorage.getItem(STORAGE_THEME) || 'dark';
+} catch (e) {}
+applyTheme(savedTheme);
+
+$('themeToggle')?.addEventListener('click', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  applyTheme(isDark ? 'light' : 'dark');
+});
+
+// ==================== CATÁLOGO FIXO (44 SKUS) & CACHE LOCAL ====================
+function buildFixedCatalogArray() {
+  const list = [];
+  const commonColors = [
+    { prefix: 'G', label: 'GALVANIZADOS (CINZA)' },
+    { prefix: 'B', label: 'BRANCO' },
+    { prefix: 'P', label: 'PRETO' },
+    { prefix: 'M', label: 'MARROM' }
+  ];
+  const commonQuantities = [100, 150, 200, 250, 500, 1000];
+
+  commonColors.forEach(c => {
+    commonQuantities.forEach(pieces => {
+      const sku = `${c.prefix}${pieces}`;
+      list.push({
+        id: sku,
+        category: `KITS COMUNS • ${c.label}`,
+        sku,
+        pu: 'Sem PU',
+        pieces
+      });
+    });
+  });
+
+  const puColors = [
+    { prefix: 'GPU', label: 'GALVANIZADOS (CINZA)' },
+    { prefix: 'BPU', label: 'BRANCO' },
+    { prefix: 'PPU', label: 'PRETO' },
+    { prefix: 'MPU', label: 'MARROM' }
+  ];
+  const puQuantities = [100, 150, 200, 250, 500];
+
+  puColors.forEach(c => {
+    puQuantities.forEach(pieces => {
+      const sku = `${c.prefix}${pieces}`;
+      list.push({
+        id: sku,
+        category: `KITS + PU • ${c.label}`,
+        sku,
+        pu: 'Com PU',
+        pieces
+      });
+    });
+  });
+
+  return list;
+}
+
+function saveLocalCache() {
+  try {
+    localStorage.setItem(STORAGE_SKUS, JSON.stringify(skus));
+    localStorage.setItem(STORAGE_SALES, JSON.stringify(sales));
+  } catch (e) {}
+}
+
+function loadLocalCache() {
+  try {
+    const rawSkus = JSON.parse(localStorage.getItem(STORAGE_SKUS) || '[]');
+    if (Array.isArray(rawSkus) && rawSkus.length > 0) {
+      skus = rawSkus.map(s => ({
+        ...s,
+        id: String(s.id || s.sku),
+        category: String(s.category || 'Geral').trim()
+      }));
+    } else {
+      skus = buildFixedCatalogArray();
+    }
+  } catch (e) {
+    skus = buildFixedCatalogArray();
+  }
+
+  try {
+    const rawSales = JSON.parse(localStorage.getItem(STORAGE_SALES) || '[]');
+    sales = Array.isArray(rawSales)
+      ? rawSales.filter(s => s && typeof s === 'object').map(s => ({ ...s, id: String(s.id || '') }))
+      : [];
+  } catch (e) {
+    sales = [];
+  }
+}
+
+// ==================== NAVEGAÇÃO ENTRE ABAS ====================
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    const isTarget = btn.dataset.tab === tabName;
+    btn.classList.toggle('active', isTarget);
+    if (!isTarget) {
+      btn.classList.add('text-slate-600', 'dark:text-dark-muted');
+    } else {
+      btn.classList.remove('text-slate-600', 'dark:text-dark-muted');
+    }
+  });
+
+  document.querySelectorAll('.tab-panel').forEach(panel => {
+    panel.classList.toggle('hidden', panel.id !== `tab-${tabName}`);
+  });
+
+  if (tabName === 'dashboard') renderDashboard();
+  if (tabName === 'relatorio') renderReport();
+  if (tabName === 'skus') renderSkus();
+  if (tabName === 'vendas') renderSales();
+}
+
+document.addEventListener('click', e => {
+  const tabBtn = e.target.closest('.tab-btn[data-tab]');
+  if (tabBtn) {
+    switchTab(tabBtn.dataset.tab);
+  }
+});
+
+$('goToSkusBtn')?.addEventListener('click', () => switchTab('skus'));
+
+// ==================== AUTOCOMPLETAR INTELIGENTE & PREFIXOS ====================
+function extractPrefix(sku) {
+  const m = String(sku || '').trim().toUpperCase().match(/^[A-Z]+/);
+  return m ? m[0] : '';
+}
+
+function getSelectedSku() {
+  const id = $('saleSkuSelect')?.value;
+  if (!id) return null;
+  return skus.find(s => String(s.id) === String(id)) || null;
+}
+
+function updateSalePreview() {
+  const preview = $('preview');
+  if (!preview) return;
+  const found = getSelectedSku();
+  const q = Number($('qty')?.value) || 0;
+
+  if (found && q > 0) {
+    preview.textContent = `${fmt(found.pieces * q)} peça(s) • ${found.pu}`;
+  } else if (found) {
+    preview.textContent = `Kit com ${fmt(found.pieces)} peça(s) • ${found.pu}`;
+  } else {
+    preview.textContent = '0 peça(s)';
+  }
+}
+
+function renderPrefixChips() {
+  const container = $('skuPrefixChips');
+  if (!container) return;
+
+  const sorted = sortSkusList(skus);
+  const prefixes = [...new Set(sorted.map(s => extractPrefix(s.sku)).filter(Boolean))];
+
+  if (!prefixes.length) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = `
+    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mr-1">Prefixos:</span>
+    ${prefixes.map(pref => {
+      const selected = activePrefix === pref;
+      return `
+        <button
+          type="button"
+          data-prefix="${esc(pref)}"
+          class="px-2.5 py-1 rounded-lg font-mono text-xs font-extrabold border transition ${
+            selected
+              ? 'bg-brand-500 text-white border-brand-500 shadow-sm shadow-brand-glow'
+              : 'bg-slate-100 dark:bg-dark-surface2 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-dark-border hover:border-brand-500 hover:text-brand-500'
+          }"
+        >${esc(pref)}</button>
+      `;
+    }).join('')}
+  `;
+}
+
+function openSkuDropdown(filterText = '') {
+  const dropdown = $('skuDropdown');
+  if (!dropdown) return;
+
+  const query = String(filterText || '').trim().toUpperCase();
+  const sorted = sortSkusList(skus);
+
+  const starts = [];
+  const contains = [];
+
+  sorted.forEach(item => {
+    const code = String(item.sku || '').toUpperCase();
+    const full = `${code} ${String(item.pu || '').toUpperCase()} ${String(item.category || '').toUpperCase()}`;
+    if (!query || code.startsWith(query)) {
+      starts.push(item);
+    } else if (full.includes(query)) {
+      contains.push(item);
+    }
+  });
+
+  dropdownMatches = [...starts, ...contains];
+  dropdownActiveIdx = dropdownMatches.length ? 0 : -1;
+
+  if (!dropdownMatches.length) {
+    dropdown.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">Nenhuma SKU encontrada para "<b>${esc(filterText)}</b>"</div>`;
+    dropdown.classList.remove('hidden');
+    return;
+  }
+
+  dropdown.innerHTML = dropdownMatches.map((item, idx) => {
+    const code = String(item.sku || '');
+    let codeHtml = esc(code);
+    if (query && code.toUpperCase().startsWith(query)) {
+      codeHtml = `<span class="text-brand-600 dark:text-brand-400 underline decoration-brand-500/60">${esc(code.slice(0, query.length))}</span>${esc(code.slice(query.length))}`;
+    }
+
+    const isPu = String(item.pu || '').toLowerCase().includes('com pu');
+    const activeClass = idx === dropdownActiveIdx ? 'bg-brand-500/10 dark:bg-brand-500/20' : 'hover:bg-slate-50 dark:hover:bg-dark-surface3/60';
+
+    return `
+      <button
+        type="button"
+        data-sku-idx="${idx}"
+        class="w-full text-left px-3.5 py-2.5 flex items-center justify-between gap-3 transition ${activeClass}"
+      >
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-mono font-black text-xs sm:text-sm">${codeHtml}</span>
+            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
+              isPu
+                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                : 'bg-slate-200/80 dark:bg-dark-surface3 text-slate-600 dark:text-slate-300'
+            }">${esc(item.pu)}</span>
+          </div>
+          <div class="text-[10.5px] text-slate-400 truncate mt-0.5">${esc(item.category || 'Geral')}</div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <span class="font-extrabold text-xs text-brand-600 dark:text-brand-400">${fmt(item.pieces)} pçs</span>
+          <span class="block text-[10px] text-slate-400">por kit</span>
+        </div>
+      </button>
+    `;
+  }).join('');
+
+  dropdown.classList.remove('hidden');
+}
+
+function closeSkuDropdown() {
+  $('skuDropdown')?.classList.add('hidden');
+  dropdownActiveIdx = -1;
+}
+
+function highlightDropdownRow() {
+  const dropdown = $('skuDropdown');
+  if (!dropdown) return;
+  dropdown.querySelectorAll('[data-sku-idx]').forEach((el, i) => {
+    const active = i === dropdownActiveIdx;
+    el.classList.toggle('bg-brand-500/10', active);
+    el.classList.toggle('dark:bg-brand-500/20', active);
+    if (active) el.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+function chooseSku(item, focusQty = true) {
+  if (!item) return;
+  $('saleSkuSelect').value = item.id;
+  $('saleSkuSearch').value = `${item.sku} — ${item.pu} (${fmt(item.pieces)} pçs)`;
+  $('clearSkuSearchBtn')?.classList.remove('hidden');
+  activePrefix = extractPrefix(item.sku);
+  renderPrefixChips();
+  closeSkuDropdown();
+  updateSalePreview();
+  if (focusQty) $('qty')?.focus();
+}
+
+function clearSkuChoice(focusInput = true) {
+  $('saleSkuSelect').value = '';
+  $('saleSkuSearch').value = '';
+  $('clearSkuSearchBtn')?.classList.add('hidden');
+  activePrefix = '';
+  renderPrefixChips();
+  updateSalePreview();
+  if (focusInput) {
+    $('saleSkuSearch')?.focus();
+    openSkuDropdown('');
+  }
+}
+
+$('skuPrefixChips')?.addEventListener('click', e => {
+  const btn = e.target.closest('[data-prefix]');
+  if (!btn) return;
+  const pref = btn.dataset.prefix;
+  activePrefix = pref;
+  $('saleSkuSelect').value = '';
+  $('saleSkuSearch').value = pref;
+  $('clearSkuSearchBtn')?.classList.remove('hidden');
+  renderPrefixChips();
+  updateSalePreview();
+  $('saleSkuSearch')?.focus();
+  openSkuDropdown(pref);
+});
+
+$('saleSkuSearch')?.addEventListener('focus', () => {
+  const selected = getSelectedSku();
+  openSkuDropdown(selected ? extractPrefix(selected.sku) : $('saleSkuSearch').value);
+});
+
+$('saleSkuSearch')?.addEventListener('input', e => {
+  const val = e.target.value;
+  $('saleSkuSelect').value = '';
+  $('clearSkuSearchBtn')?.classList.toggle('hidden', !val.trim());
+  activePrefix = extractPrefix(val);
+  renderPrefixChips();
+  updateSalePreview();
+  openSkuDropdown(val);
+});
+
+$('saleSkuSearch')?.addEventListener('keydown', e => {
+  const dropdown = $('skuDropdown');
+  const open = dropdown && !dropdown.classList.contains('hidden');
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!open) {
+      openSkuDropdown($('saleSkuSearch').value);
+      return;
+    }
+    if (dropdownMatches.length) {
+      dropdownActiveIdx = (dropdownActiveIdx + 1) % dropdownMatches.length;
+      highlightDropdownRow();
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (open && dropdownMatches.length) {
+      dropdownActiveIdx = (dropdownActiveIdx - 1 + dropdownMatches.length) % dropdownMatches.length;
+      highlightDropdownRow();
+    }
+  } else if (e.key === 'Enter') {
+    if (open && dropdownMatches.length) {
+      e.preventDefault();
+      chooseSku(dropdownMatches[dropdownActiveIdx >= 0 ? dropdownActiveIdx : 0], true);
+    }
+  } else if (e.key === 'Escape') {
+    closeSkuDropdown();
+  }
+});
+
+$('skuDropdown')?.addEventListener('click', e => {
+  const row = e.target.closest('[data-sku-idx]');
+  if (!row) return;
+  const item = dropdownMatches[Number(row.dataset.skuIdx)];
+  if (item) chooseSku(item, true);
+});
+
+$('clearSkuSearchBtn')?.addEventListener('click', () => clearSkuChoice(true));
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#skuAutocompleteWrapper') && !e.target.closest('#skuPrefixChips')) {
+    closeSkuDropdown();
+  }
+});
+
+$('qty')?.addEventListener('input', updateSalePreview);
+
+// ==================== LANÇAMENTO E RENDERIZAÇÃO DE VENDAS ====================
+$('saleForm')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  let found = getSelectedSku();
+
+  if (!found) {
+    const typed = ($('saleSkuSearch')?.value || '').trim().toUpperCase();
+    const exact = skus.filter(s => String(s.sku || '').toUpperCase() === typed);
+    if (exact.length === 1) found = exact[0];
+  }
+
+  const qty = Number($('qty')?.value);
+  const date = $('date')?.value;
+
+  if (!found || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isSafeInteger(qty) || qty < 1) {
+    showModal('Dados Incompletos', 'Selecione uma SKU válida na lista, informe a data e uma quantidade inteira maior que zero.');
+    $('saleSkuSearch')?.focus();
+    openSkuDropdown($('saleSkuSearch')?.value || '');
+    return;
+  }
+
+  const payload = {
+    category: found.category || 'Geral',
+    sku: found.sku,
+    pu: found.pu,
+    pieces: Number(found.pieces),
+    qty,
+    date
+  };
+
+  try {
+    if (isCloudOnline && salesRef) {
+      await set(push(salesRef), payload);
+    } else {
+      sales.push({ ...payload, id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 6)}` });
+      saveLocalCache();
+      renderSales();
+      renderDashboard();
+      renderReport();
+    }
+
+    showToast(`+${qty}x ${payload.sku} (${fmt(totalPieces(payload))} peças)`);
+
+    if (date.slice(0, 7) !== $('monthFilter').value) {
+      $('monthFilter').value = date.slice(0, 7);
+    }
+
+    $('saleSkuSelect').value = '';
+    $('saleSkuSearch').value = '';
+    $('clearSkuSearchBtn')?.classList.add('hidden');
+    activePrefix = '';
+    renderPrefixChips();
+    $('qty').value = '';
+    updateSalePreview();
+    $('saleSkuSearch')?.focus();
+  } catch (err) {
+    console.error('Erro ao lançar venda:', err);
+    sales.push({ ...payload, id: `local_${Date.now()}` });
+    saveLocalCache();
+    renderSales();
+    showToast(`Salvo localmente: +${qty}x ${payload.sku}`);
+  }
+});
+
+$('monthFilter')?.addEventListener('change', renderSales);
+$('searchFilter')?.addEventListener('input', renderSales);
+
+$('rows')?.addEventListener('click', e => {
+  const btn = e.target.closest('[data-delete]');
+  if (!btn) return;
+  const id = btn.dataset.delete;
+  showModal('Excluir Lançamento', 'Deseja remover este registro de venda?', true, async () => {
+    try {
+      if (isCloudOnline && db && !String(id).startsWith('local_')) {
+        await remove(ref(db, `kitflow/sales/${id}`));
+      } else {
+        sales = sales.filter(s => String(s.id) !== String(id));
+        saveLocalCache();
+        renderSales();
+        renderDashboard();
+        renderReport();
+      }
+      showToast('Lançamento removido.');
+    } catch (err) {
+      showModal('Erro', 'Não foi possível excluir o lançamento.');
+    }
+  });
+});
+
+$('clearAll')?.addEventListener('click', () => {
+  const month = $('monthFilter').value;
+  const targetList = sales.filter(s => (s.date || '').startsWith(month));
+  if (!targetList.length) {
+    showModal('Aviso', 'Não há lançamentos neste mês para remover.');
+    return;
+  }
+  showModal('Limpar Vendas do Mês', `Remover todos os ${targetList.length} lançamento(s) de ${formatMonthName(month)}?`, true, async () => {
+    try {
+      if (isCloudOnline && db) {
+        await Promise.all(
+          targetList
+            .filter(item => !String(item.id).startsWith('local_'))
+            .map(item => remove(ref(db, `kitflow/sales/${item.id}`)))
+        );
+      }
+      sales = sales.filter(s => !(s.date || '').startsWith(month));
+      saveLocalCache();
+      renderSales();
+      renderDashboard();
+      renderReport();
+      showToast('Vendas do mês removidas.');
+    } catch (err) {
+      showModal('Erro', 'Erro ao limpar vendas do mês.');
+    }
+  });
+});
+
+function renderSales() {
+  const month = $('monthFilter')?.value || localDate().slice(0, 7);
+  const term = ($('searchFilter')?.value || '').trim().toUpperCase();
+
+  const data = sales
+    .filter(s => (s.date || '').startsWith(month))
+    .filter(s => {
+      if (!term) return true;
+      const cat = getSaleCategory(s).toUpperCase();
+      return String(s.sku || '').toUpperCase().includes(term) ||
+             String(s.pu || '').toUpperCase().includes(term) ||
+             cat.includes(term);
+    })
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || String(a.id || '').localeCompare(String(b.id || '')));
+
+  const days = [...new Set(data.map(s => s.date))].sort();
+
+  $('monthSales').textContent = fmt(data.reduce((acc, s) => acc + Number(s.qty || 0), 0));
+  $('monthPieces').textContent = fmt(data.reduce((acc, s) => acc + totalPieces(s), 0));
+  $('monthRows').textContent = fmt(data.length);
+  $('monthDays').textContent = fmt(days.length);
+
+  $('rows').innerHTML = data.map(s => `
+    <tr class="hover:bg-slate-50 dark:hover:bg-dark-surface2 transition">
+      <td class="py-3 px-3" data-label="Data">${(s.date || '').split('-').reverse().join('/')}</td>
+      <td class="py-3 px-3" data-label="Categoria"><span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-dark-surface3 text-[11px] font-bold">${esc(getSaleCategory(s))}</span></td>
+      <td class="py-3 px-3 font-mono font-bold text-brand-600 dark:text-brand-500" data-label="SKU">${esc(s.sku)}</td>
+      <td class="py-3 px-3" data-label="Variação">${esc(s.pu)}</td>
+      <td class="py-3 px-3 text-right" data-label="Peças/Kit">${fmt(s.pieces)}</td>
+      <td class="py-3 px-3 text-right font-bold" data-label="Qtd.">${fmt(s.qty)}</td>
+      <td class="py-3 px-3 text-right font-extrabold text-brand-600 dark:text-brand-400" data-label="Total Peças">${fmt(totalPieces(s))}</td>
+      <td class="py-3 px-3 text-right" data-label="Ação">
+        <button type="button" class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-xs hover:bg-rose-500 hover:text-white transition" data-delete="${esc(s.id)}">Excluir</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="8" class="empty-cell py-8 text-center text-slate-400">Nenhum lançamento neste mês.</td></tr>';
+
+  $('daily').innerHTML = days.map(day => {
+    const list = data.filter(s => s.date === day);
+    const salesQty = list.reduce((acc, s) => acc + Number(s.qty || 0), 0);
+    const pieces = list.reduce((acc, s) => acc + totalPieces(s), 0);
+
+    const groups = {};
+    list.forEach(s => {
+      const cat = getSaleCategory(s);
+      const k = `${cat}|${s.sku}|${s.pu}`;
+      if (!groups[k]) groups[k] = { category: cat, sku: s.sku, pu: s.pu, qty: 0, pieces: 0 };
+      groups[k].qty += Number(s.qty || 0);
+      groups[k].pieces += totalPieces(s);
+    });
+
+    const sortedGroups = sortSkusList(Object.values(groups));
+
+    return `
+      <div class="mb-5 p-5 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+        <div class="flex items-center justify-between gap-3 pb-3 mb-4 border-b border-slate-100 dark:border-dark-border flex-wrap">
+          <h3 class="text-sm sm:text-base font-black">${day.split('-').reverse().join('/')}</h3>
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full bg-slate-100 dark:bg-dark-surface2 text-xs font-bold">${fmt(salesQty)} kit(s)</span>
+            <span class="px-3 py-1 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 text-xs font-extrabold">${fmt(pieces)} peças</span>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm responsive-table">
+            <thead>
+              <tr class="border-b border-slate-100 dark:border-dark-border text-[10px] font-extrabold uppercase text-slate-400">
+                <th class="py-2.5 px-3">Categoria</th>
+                <th class="py-2.5 px-3">SKU</th>
+                <th class="py-2.5 px-3">Variação</th>
+                <th class="py-2.5 px-3 text-right">Qtd. Vendida</th>
+                <th class="py-2.5 px-3 text-right">Total Peças</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-dark-border/40">
+              ${sortedGroups.map(g => `
+                <tr>
+                  <td class="py-2.5 px-3" data-label="Categoria"><span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-dark-surface3 text-[11px] font-bold">${esc(g.category)}</span></td>
+                  <td class="py-2.5 px-3 font-mono font-bold text-brand-600 dark:text-brand-500" data-label="SKU">${esc(g.sku)}</td>
+                  <td class="py-2.5 px-3" data-label="Variação">${esc(g.pu)}</td>
+                  <td class="py-2.5 px-3 text-right font-bold" data-label="Qtd. Vendida">${fmt(g.qty)}</td>
+                  <td class="py-2.5 px-3 text-right font-extrabold text-brand-600 dark:text-brand-400" data-label="Total Peças">${fmt(g.pieces)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }).join('') || '<div class="p-8 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border text-center text-slate-400 text-xs">Selecione uma SKU, quantidade e data acima para começar.</div>';
+}
+
+// ==================== ABA 2: DASHBOARD GERAL ====================
+function renderDashboard() {
+  const sortedAll = [...sales].sort((a, b) => (a.date || '').localeCompare(b.date || '') || String(a.id || '').localeCompare(String(b.id || '')));
+  const totalKits = sortedAll.reduce((acc, s) => acc + Number(s.qty || 0), 0);
+  const totalPcs = sortedAll.reduce((acc, s) => acc + totalPieces(s), 0);
+  const uniqueDays = new Set(sortedAll.map(s => s.date)).size;
+
+  const monthMap = {};
+  sortedAll.forEach(s => {
+    const ym = (s.date || '').slice(0, 7);
+    if (!ym) return;
+    if (!monthMap[ym]) monthMap[ym] = { ym, kits: 0, pieces: 0, rows: 0, days: new Set() };
+    monthMap[ym].kits += Number(s.qty || 0);
+    monthMap[ym].pieces += totalPieces(s);
+    monthMap[ym].rows += 1;
+    monthMap[ym].days.add(s.date);
+  });
+
+  const monthsList = Object.values(monthMap).sort((a, b) => a.ym.localeCompare(b.ym));
+  const mCount = monthsList.length || 1;
+
+  $('allSales').textContent = fmt(totalKits);
+  $('allPieces').textContent = fmt(totalPcs);
+  $('allRows').textContent = fmt(sortedAll.length);
+  $('allDays').textContent = `Em ${fmt(uniqueDays)} dia(s) ativo(s)`;
+  $('allMonthsCount').textContent = fmt(monthsList.length);
+  $('allAvgMonth').textContent = `Média: ${fmt(Math.round(totalKits / mCount))} kits/mês`;
+  $('allAvgPieces').textContent = `Média: ${fmt(Math.round(totalPcs / mCount))} pçs/mês`;
+
+  if (sortedAll.length > 0) {
+    const firstDate = sortedAll[0].date.split('-').reverse().join('/');
+    const lastDate = sortedAll[sortedAll.length - 1].date.split('-').reverse().join('/');
+    $('allTimeRange').textContent = `Período acumulado: ${firstDate} até ${lastDate}`;
+  } else {
+    $('allTimeRange').textContent = 'Nenhum lançamento registrado ainda';
+  }
+
+  if (monthsList.length > 0) {
+    const best = [...monthsList].sort((a, b) => b.pieces - a.pieces)[0];
+    $('bestMonthLabel').textContent = `Recorde: ${formatMonthName(best.ym)} (${fmt(best.pieces)} pçs)`;
+  } else {
+    $('bestMonthLabel').textContent = 'Melhor mês: -';
+  }
+
+  const chartEl = $('monthlyChart');
+  if (!monthsList.length) {
+    chartEl.innerHTML = '<div class="w-full text-center text-slate-400 text-xs self-center">Sem dados para exibir o gráfico.</div>';
+  } else {
+    const maxPcs = Math.max(...monthsList.map(m => m.pieces), 1);
+    chartEl.innerHTML = monthsList.map(m => {
+      const pct = Math.max(Math.round((m.pieces / maxPcs) * 100), 6);
+      return `
+        <div class="flex-1 min-w-[56px] h-full flex flex-col items-center justify-end gap-1.5" title="${formatMonthName(m.ym)}: ${fmt(m.pieces)} peças (${fmt(m.kits)} kits)">
+          <div class="text-[10px] font-extrabold text-brand-600 dark:text-brand-400 whitespace-nowrap">${fmt(m.pieces)}</div>
+          <div class="w-full max-w-[40px] bg-gradient-to-t from-brand-600 to-brand-500 rounded-t-lg transition-all duration-500 shadow-md shadow-brand-glow" style="height:${pct}%"></div>
+          <div class="text-[10px] font-bold text-slate-500 dark:text-dark-muted whitespace-nowrap">${formatMonthName(m.ym)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const skuMap = {};
+  sortedAll.forEach(s => {
+    const k = `${s.sku}|${s.pu}`;
+    if (!skuMap[k]) skuMap[k] = { sku: s.sku, pu: s.pu, kits: 0, pieces: 0 };
+    skuMap[k].kits += Number(s.qty || 0);
+    skuMap[k].pieces += totalPieces(s);
+  });
+  const topSkus = Object.values(skuMap).sort((a, b) => b.pieces - a.pieces).slice(0, 6);
+
+  $('topSkusList').innerHTML = topSkus.map((item, idx) => `
+    <div class="py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <span class="w-6 h-6 rounded-lg text-xs font-black flex items-center justify-center ${idx === 0 ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-dark-surface3 text-slate-600 dark:text-slate-300'}">${idx + 1}</span>
+        <div>
+          <span class="font-mono font-bold text-xs text-brand-600 dark:text-brand-500">${esc(item.sku)}</span>
+          <span class="text-[11px] text-slate-400 block">${esc(item.pu)}</span>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-xs font-extrabold text-brand-600 dark:text-brand-400">${fmt(item.pieces)} pçs</div>
+        <div class="text-[11px] text-slate-400">${fmt(item.kits)} kit(s)</div>
+      </div>
+    </div>
+  `).join('') || '<div class="py-8 text-center text-slate-400 text-xs">Nenhuma venda registrada.</div>';
+
+  $('monthlyTableRows').innerHTML = monthsList.map(m => `
+    <tr class="hover:bg-slate-50 dark:hover:bg-dark-surface2 transition">
+      <td class="py-3 px-3 font-bold" data-label="Mês / Ano">${formatMonthName(m.ym)}</td>
+      <td class="py-3 px-3 text-right" data-label="Dias Ativos">${fmt(m.days.size)}</td>
+      <td class="py-3 px-3 text-right" data-label="Lançamentos">${fmt(m.rows)}</td>
+      <td class="py-3 px-3 text-right font-bold" data-label="Kits Vendidos">${fmt(m.kits)}</td>
+      <td class="py-3 px-3 text-right font-extrabold text-brand-600 dark:text-brand-400" data-label="Total de Peças">${fmt(m.pieces)}</td>
+      <td class="py-3 px-3 text-right" data-label="Ação">
+        <button type="button" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-dark-surface3 text-xs font-bold hover:border-brand-500 transition" data-open-month="${esc(m.ym)}">Ver mês →</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" class="empty-cell py-8 text-center text-slate-400">Nenhum mês registrado ainda.</td></tr>';
+
+  renderAllHistoryTable();
+}
+
+$('monthlyTableRows')?.addEventListener('click', e => {
+  const btn = e.target.closest('[data-open-month]');
+  if (!btn) return;
+  $('monthFilter').value = btn.dataset.openMonth;
+  switchTab('vendas');
+});
+
+function renderAllHistoryTable() {
+  const term = ($('allSearchFilter')?.value || '').trim().toUpperCase();
+  const filtered = [...sales]
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || String(a.id || '').localeCompare(String(b.id || '')))
+    .filter(s => {
+      if (!term) return true;
+      const cat = getSaleCategory(s).toUpperCase();
+      return String(s.sku || '').toUpperCase().includes(term) ||
+             String(s.pu || '').toUpperCase().includes(term) ||
+             cat.includes(term) ||
+             (s.date || '').includes(term);
+    });
+
+  $('allHistoryRows').innerHTML = filtered.map(s => `
+    <tr class="hover:bg-slate-50 dark:hover:bg-dark-surface2 transition">
+      <td class="py-3 px-3" data-label="Data">${(s.date || '').split('-').reverse().join('/')}</td>
+      <td class="py-3 px-3" data-label="Categoria"><span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-dark-surface3 text-[11px] font-bold">${esc(getSaleCategory(s))}</span></td>
+      <td class="py-3 px-3 font-mono font-bold text-brand-600 dark:text-brand-500" data-label="SKU">${esc(s.sku)}</td>
+      <td class="py-3 px-3" data-label="Variação">${esc(s.pu)}</td>
+      <td class="py-3 px-3 text-right" data-label="Peças/Kit">${fmt(s.pieces)}</td>
+      <td class="py-3 px-3 text-right font-bold" data-label="Qtd.">${fmt(s.qty)}</td>
+      <td class="py-3 px-3 text-right font-extrabold text-brand-600 dark:text-brand-400" data-label="Total Peças">${fmt(totalPieces(s))}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" class="empty-cell py-8 text-center text-slate-400">Nenhum lançamento encontrado.</td></tr>';
+}
+
+$('allSearchFilter')?.addEventListener('input', renderAllHistoryTable);
+
+// ==================== ABA 3: RELATÓRIO (MÊS E DIA) ====================
+function getFilteredReportSales() {
+  const monthVal = $('reportMonthFilter')?.value || localDate().slice(0, 7);
+  const dayVal = $('reportDayFilter')?.value || '';
+  const term = ($('reportSearchFilter')?.value || '').trim().toUpperCase();
+
+  return sales
+    .filter(s => (dayVal ? String(s.date || '') === dayVal : String(s.date || '').startsWith(monthVal)))
+    .filter(s => {
+      if (!term) return true;
+      const cat = getSaleCategory(s).toUpperCase();
+      return String(s.sku || '').toUpperCase().includes(term) ||
+             String(s.pu || '').toUpperCase().includes(term) ||
+             cat.includes(term);
+    })
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || String(a.id || '').localeCompare(String(b.id || '')));
+}
+
+function renderReport() {
+  const monthInput = $('reportMonthFilter');
+  const dayInput = $('reportDayFilter');
+  if (!monthInput || !dayInput) return;
+
+  if (!monthInput.value) monthInput.value = localDate().slice(0, 7);
+  const monthVal = monthInput.value;
+  const dayVal = dayInput.value;
+
+  $('clearReportDayBtn')?.classList.toggle('hidden', !dayVal);
+
+  const filtered = getFilteredReportSales();
+
+  const grouped = new Map();
+  filtered.forEach(s => {
+    const cat = getSaleCategory(s);
+    const sku = String(s.sku || '').trim().toUpperCase();
+    const pu = String(s.pu || 'Sem PU');
+    const pieces = Number(s.pieces || 0);
+    const key = `${cat}|${sku}|${pu}|${pieces}`;
+    if (!grouped.has(key)) {
+      grouped.set(key, { category: cat, sku, pu, pieces, qty: 0, totalPieces: 0, launches: 0 });
+    }
+    const row = grouped.get(key);
+    row.qty += Number(s.qty || 0);
+    row.totalPieces += totalPieces(s);
+    row.launches += 1;
+  });
+
+  const consolidated = sortSkusList([...grouped.values()]);
+  const sumKits = consolidated.reduce((acc, r) => acc + r.qty, 0);
+  const sumPieces = consolidated.reduce((acc, r) => acc + r.totalPieces, 0);
+
+  $('reportKits').textContent = fmt(sumKits);
+  $('reportPieces').textContent = fmt(sumPieces);
+  $('reportLaunches').textContent = fmt(filtered.length);
+  $('reportSkusCount').textContent = fmt(consolidated.length);
+
+  $('reportSubtitle').textContent = dayVal
+    ? `📅 Exibindo vendas do dia ${dayVal.split('-').reverse().join('/')}`
+    : `📆 Exibindo consolidado completo do mês ${formatMonthName(monthVal)}`;
+
+  $('reportConsolidatedBody').innerHTML = consolidated.map(r => `
+    <tr class="hover:bg-slate-50 dark:hover:bg-dark-surface2 transition">
+      <td class="py-3 px-3" data-label="Categoria"><span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-dark-surface3 text-[11px] font-bold">${esc(r.category)}</span></td>
+      <td class="py-3 px-3 font-mono font-bold text-brand-600 dark:text-brand-500" data-label="SKU">${esc(r.sku)}</td>
+      <td class="py-3 px-3" data-label="Variação">${esc(r.pu)}</td>
+      <td class="py-3 px-3 text-right" data-label="Peças/Kit">${fmt(r.pieces)}</td>
+      <td class="py-3 px-3 text-right font-extrabold" data-label="Qtd. Vendida">${fmt(r.qty)}</td>
+      <td class="py-3 px-3 text-right font-extrabold text-brand-600 dark:text-brand-400" data-label="Total Peças">${fmt(r.totalPieces)}</td>
+      <td class="py-3 px-3 text-right" data-label="Lançamentos">${fmt(r.launches)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" class="empty-cell py-8 text-center text-slate-400">Nenhuma venda encontrada para o período selecionado.</td></tr>';
+
+  $('reportConsolidatedFoot').innerHTML = consolidated.length ? `
+    <tr class="bg-slate-50 dark:bg-dark-surface2 border-t border-slate-200 dark:border-dark-border">
+      <td colspan="4" class="py-3.5 px-3 font-black text-xs uppercase text-brand-600 dark:text-brand-400">Total Geral do Período</td>
+      <td class="py-3.5 px-3 text-right font-black" data-label="Qtd. Kits">${fmt(sumKits)}</td>
+      <td class="py-3.5 px-3 text-right font-black text-brand-600 dark:text-brand-400" data-label="Total Peças">${fmt(sumPieces)}</td>
+      <td class="py-3.5 px-3 text-right font-black" data-label="Lançamentos">${fmt(filtered.length)}</td>
+    </tr>
+  ` : '';
+
+  $('reportDetailBadge').textContent = `${fmt(filtered.length)} registro(s)`;
+  $('reportDetailBody').innerHTML = filtered.map(s => `
+    <tr class="hover:bg-slate-50 dark:hover:bg-dark-surface2 transition">
+      <td class="py-3 px-3" data-label="Data">${(s.date || '').split('-').reverse().join('/')}</td>
+      <td class="py-3 px-3" data-label="Categoria"><span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-dark-surface3 text-[11px] font-bold">${esc(getSaleCategory(s))}</span></td>
+      <td class="py-3 px-3 font-mono font-bold text-brand-600 dark:text-brand-500" data-label="SKU">${esc(s.sku)}</td>
+      <td class="py-3 px-3" data-label="Variação">${esc(s.pu)}</td>
+      <td class="py-3 px-3 text-right" data-label="Peças/Kit">${fmt(s.pieces)}</td>
+      <td class="py-3 px-3 text-right font-bold" data-label="Qtd.">${fmt(s.qty)}</td>
+      <td class="py-3 px-3 text-right font-extrabold text-brand-600 dark:text-brand-400" data-label="Total Peças">${fmt(totalPieces(s))}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" class="empty-cell py-8 text-center text-slate-400">Nenhum lançamento detalhado neste filtro.</td></tr>';
+}
+
+$('reportMonthFilter')?.addEventListener('change', () => {
+  const m = $('reportMonthFilter').value;
+  const d = $('reportDayFilter').value;
+  if (d && m && !d.startsWith(m)) {
+    $('reportDayFilter').value = '';
+  }
+  renderReport();
+});
+
+$('reportDayFilter')?.addEventListener('change', () => {
+  const d = $('reportDayFilter').value;
+  if (d && d.length >= 7) {
+    $('reportMonthFilter').value = d.slice(0, 7);
+  }
+  renderReport();
+});
+
+$('clearReportDayBtn')?.addEventListener('click', () => {
+  $('reportDayFilter').value = '';
+  renderReport();
+});
+
+$('reportSearchFilter')?.addEventListener('input', renderReport);
+
+$('exportReportCsv')?.addEventListener('click', () => {
+  const list = getFilteredReportSales();
+  if (!list.length) {
+    showModal('Aviso', 'Não há dados no período filtrado para exportar.');
+    return;
+  }
+  const d = $('reportDayFilter').value;
+  const m = $('reportMonthFilter').value;
+  downloadCSV(list, `relatorio-${d || m}.csv`);
+});
+
+// ==================== ABA 4: CATÁLOGO DE SKUS ====================
+function syncCatalogUI() {
+  const sorted = sortSkusList(skus);
+  const selected = getSelectedSku();
+
+  if (selected) {
+    $('saleSkuSearch').value = `${selected.sku} — ${selected.pu} (${fmt(selected.pieces)} pçs)`;
+    $('clearSkuSearchBtn')?.classList.remove('hidden');
+  } else if ($('saleSkuSelect')?.value) {
+    $('saleSkuSelect').value = '';
+    $('saleSkuSearch').value = '';
+    $('clearSkuSearchBtn')?.classList.add('hidden');
+  }
+
+  $('skuBadge').textContent = skus.length;
+  $('emptyCatalogAlert')?.classList.toggle('hidden', skus.length > 0);
+
+  const cats = [...new Set(sorted.map(s => s.category || 'Geral'))];
+  const datalist = $('categorySuggestions');
+  if (datalist) {
+    datalist.innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
+  }
+
+  renderPrefixChips();
+  updateSalePreview();
+}
+
+$('skuForm')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const editId = $('editSkuId').value.trim();
+  const payload = {
+    category: $('catCategory').value.trim() || 'Geral',
+    sku: $('catSku').value.trim().toUpperCase(),
+    pu: $('catPu').value,
+    pieces: Number($('catPieces').value)
+  };
+
+  if (!payload.category || !payload.sku || !Number.isSafeInteger(payload.pieces) || payload.pieces < 1) {
+    showModal('Dados Inválidos', 'Informe categoria, código SKU e uma quantidade inteira de peças maior que zero.');
+    return;
+  }
+
+  const dup = skus.find(s =>
+    String(s.sku || '').toUpperCase() === payload.sku &&
+    String(s.pu || '') === payload.pu &&
+    String(s.id) !== String(editId)
+  );
+  if (dup) {
+    showModal('SKU Duplicada', `A SKU "${payload.sku}" (${payload.pu}) já está cadastrada.`);
+    return;
+  }
+
+  try {
+    if (isCloudOnline && db) {
+      if (editId) {
+        await set(ref(db, `kitflow/skus/${editId}`), payload);
+      } else {
+        await set(push(skusRef), payload);
+      }
+    } else {
+      if (editId) {
+        skus = skus.map(s => (String(s.id) === String(editId) ? { ...payload, id: editId } : s));
+      } else {
+        skus.push({ ...payload, id: `sku_${Date.now()}` });
+      }
+      saveLocalCache();
+      syncCatalogUI();
+      renderSkus();
+    }
+    showToast(editId ? 'SKU atualizada!' : 'SKU cadastrada!');
+    resetSkuForm();
+  } catch (err) {
+    showModal('Erro', 'Não foi possível salvar a SKU.');
+  }
+});
+
+function resetSkuForm() {
+  const wasEdit = Boolean($('editSkuId')?.value);
+  const lastCat = $('catCategory')?.value || '';
+  $('skuForm')?.reset();
+  if (!wasEdit && $('catCategory')) $('catCategory').value = lastCat;
+  if ($('editSkuId')) $('editSkuId').value = '';
+  if ($('skuFormTitle')) $('skuFormTitle').textContent = 'Cadastrar SKU / Kit';
+  if ($('saveSkuBtn')) $('saveSkuBtn').textContent = 'Salvar SKU';
+  $('cancelEditSkuBtn')?.classList.add('hidden');
+}
+
+$('cancelEditSkuBtn')?.addEventListener('click', resetSkuForm);
+
+function renderSkus() {
+  const container = $('skuCategoriesContainer');
+  if (!container) return;
+
+  const sorted = sortSkusList(skus);
+  if (!sorted.length) {
+    container.innerHTML = '<div class="p-8 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border text-center text-slate-400 text-xs">Nenhuma SKU cadastrada ainda.</div>';
+    return;
+  }
+
+  const groups = {};
+  sorted.forEach(s => {
+    const cat = s.category || 'Geral';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(s);
+  });
+
+  container.innerHTML = Object.keys(groups).map(cat => `
+    <div class="p-5 sm:p-7 rounded-3xl bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border shadow-sm">
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-dark-border">
+        <h3 class="font-black text-sm">📁 ${esc(cat)}</h3>
+        <span class="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-dark-surface2 text-xs font-bold">${groups[cat].length} SKU(s)</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs sm:text-sm responsive-table">
+          <thead>
+            <tr class="border-b border-slate-100 dark:border-dark-border text-[10px] font-extrabold uppercase text-slate-400">
+              <th class="py-2.5 px-3">SKU</th>
+              <th class="py-2.5 px-3">Variação</th>
+              <th class="py-2.5 px-3 text-right">Peças por Kit</th>
+              <th class="py-2.5 px-3 text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-dark-border/40">
+            ${groups[cat].map(s => `
+              <tr>
+                <td class="py-3 px-3 font-mono font-bold text-brand-600 dark:text-brand-500" data-label="SKU">${esc(s.sku)}</td>
+                <td class="py-3 px-3" data-label="Variação">${esc(s.pu)}</td>
+                <td class="py-3 px-3 text-right font-bold" data-label="Peças por Kit">${fmt(s.pieces)} pçs</td>
+                <td class="py-3 px-3 text-right" data-label="Ações">
+                  <div class="inline-flex gap-1.5">
+                    <button type="button" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-dark-surface3 font-bold text-xs hover:border-brand-500 transition" data-edit-sku="${esc(s.id)}">Editar</button>
+                    <button type="button" class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-xs hover:bg-rose-500 hover:text-white transition" data-del-sku="${esc(s.id)}">Excluir</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `).join('');
+}
+
+$('skuCategoriesContainer')?.addEventListener('click', e => {
+  const delBtn = e.target.closest('[data-del-sku]');
+  if (delBtn) {
+    const id = delBtn.dataset.delSku;
+    showModal('Excluir SKU', 'Remover esta SKU do catálogo?', true, async () => {
+      try {
+        if (isCloudOnline && db) {
+          await remove(ref(db, `kitflow/skus/${id}`));
+        } else {
+          skus = skus.filter(s => String(s.id) !== String(id));
+          saveLocalCache();
+          syncCatalogUI();
+          renderSkus();
+        }
+        showToast('SKU removida.');
+      } catch (err) {
+        showModal('Erro', 'Falha ao remover SKU.');
+      }
+    });
+    return;
+  }
+
+  const editBtn = e.target.closest('[data-edit-sku]');
+  if (editBtn) {
+    const id = editBtn.dataset.editSku;
+    const item = skus.find(s => String(s.id) === String(id));
+    if (!item) return;
+    $('editSkuId').value = item.id;
+    $('catCategory').value = item.category || 'Geral';
+    $('catSku').value = item.sku;
+    $('catPu').value = item.pu;
+    $('catPieces').value = item.pieces;
+    $('skuFormTitle').textContent = `Editando SKU: ${item.sku}`;
+    $('saveSkuBtn').textContent = 'Atualizar SKU';
+    $('cancelEditSkuBtn').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
+
+// ==================== EXPORTAÇÃO CSV & BACKUP JSON ====================
+function downloadCSV(dataList, filename) {
+  const header = ['Data', 'Categoria', 'SKU', 'Variação', 'Peças por Kit', 'Quantidade', 'Total Peças'];
+  const lines = [header, ...dataList.map(s => [s.date, getSaleCategory(s), s.sku, s.pu, s.pieces, s.qty, totalPieces(s)])];
+  const csv = '\ufeff' + lines.map(r => r.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+$('exportMonth')?.addEventListener('click', () => {
+  const m = $('monthFilter').value;
+  downloadCSV(sales.filter(s => (s.date || '').startsWith(m)), `vendas-${m || 'mes'}.csv`);
+});
+
+$('exportAll')?.addEventListener('click', () => {
+  const sorted = [...sales].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  downloadCSV(sorted, `vendas-completo-${localDate()}.csv`);
+});
+
+$('backupBtn')?.addEventListener('click', () => {
+  const payload = { version: 6, exportedAt: new Date().toISOString(), skus, sales };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+  a.download = `backup-kitflow-${localDate()}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+
+$('restoreBtn')?.addEventListener('click', () => $('restoreFile')?.click());
+$('restoreFile')?.addEventListener('change', async e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    if (!parsed || !Array.isArray(parsed.skus) || !Array.isArray(parsed.sales)) {
+      throw new Error('Estrutura de backup inválida.');
+    }
+
+    const cleanSkus = parsed.skus.map(k => ({
+      category: String(k.category || 'Geral').trim(),
+      sku: String(k.sku || '').trim().toUpperCase(),
+      pu: String(k.pu || 'Sem PU'),
+      pieces: Number(k.pieces)
+    }));
+
+    const cleanSales = parsed.sales.map(s => ({
+      category: String(s.category || 'Geral').trim(),
+      sku: String(s.sku || '').trim().toUpperCase(),
+      pu: String(s.pu || 'Sem PU'),
+      pieces: Number(s.pieces),
+      qty: Number(s.qty),
+      date: String(s.date || '')
+    }));
+
+    showModal('Restaurar Backup', `Substituir os dados atuais por ${cleanSkus.length} SKU(s) e ${cleanSales.length} venda(s)?`, true, async () => {
+      if (isCloudOnline && db) {
+        const sObj = {};
+        cleanSkus.forEach(item => { sObj[push(skusRef).key] = item; });
+        const saleObj = {};
+        cleanSales.forEach(item => { saleObj[push(salesRef).key] = item; });
+
+        await Promise.all([
+          set(skusRef, Object.keys(sObj).length ? sObj : null),
+          set(salesRef, Object.keys(saleObj).length ? saleObj : null)
+        ]);
+      } else {
+        skus = cleanSkus.map((item, i) => ({ ...item, id: `sku_${i}_${Date.now()}` }));
+        sales = cleanSales.map((item, i) => ({ ...item, id: `local_${i}_${Date.now()}` }));
+        saveLocalCache();
+        syncCatalogUI();
+        renderSkus();
+        renderSales();
+        renderDashboard();
+        renderReport();
+      }
+      showToast('Backup restaurado!');
+    });
+  } catch (err) {
+    showModal('Erro ao Restaurar', err.message || 'Arquivo inválido.');
+  } finally {
+    e.target.value = '';
+  }
+});
+
+// ==================== INICIALIZAÇÃO IMEDIATA & FIREBASE ====================
+function setSyncBadge(online, text) {
+  const el = $('syncStatus');
+  if (!el) return;
+  el.className = online
+    ? 'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 inline-flex items-center gap-1.5 whitespace-nowrap'
+    : 'text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 inline-flex items-center gap-1.5 whitespace-nowrap';
+  el.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-current"></span> ${esc(text)}`;
+}
+
+async function initFixedCatalogInCloud() {
+  if (fixedCatalogInitStarted || !db) return;
+  fixedCatalogInitStarted = true;
+  try {
+    const fixedObj = {};
+    buildFixedCatalogArray().forEach(item => {
+      fixedObj[item.sku] = {
+        category: item.category,
+        sku: item.sku,
+        pu: item.pu,
+        pieces: item.pieces
+      };
+    });
+
+    await runTransaction(ref(db, 'kitflow'), current => {
+      const data = current && typeof current === 'object' ? current : {};
+      if (Number(data.fixedCatalogVersion) >= FIXED_CATALOG_VERSION) return;
+      return {
+        ...data,
+        skus: fixedObj,
+        fixedCatalogVersion: FIXED_CATALOG_VERSION
+      };
+    });
+  } catch (err) {
+    fixedCatalogInitStarted = false;
+    console.warn('Transação de catálogo inicial ignorada:', err);
+  }
+}
+
+// 1. Preenche datas iniciais e carrega cache/catálogo imediatamente
+const todayStr = localDate();
+if ($('date')) $('date').value = todayStr;
+if ($('monthFilter')) $('monthFilter').value = todayStr.slice(0, 7);
+if ($('reportMonthFilter')) $('reportMonthFilter').value = todayStr.slice(0, 7);
+
+loadLocalCache();
+syncCatalogUI();
+renderSkus();
+renderSales();
+renderDashboard();
+renderReport();
+
+// 2. Conecta ao Firebase Realtime Database em segundo plano
+try {
+  const app = initializeApp(firebaseConfig);
+  db = getDatabase(app);
+  skusRef = ref(db, 'kitflow/skus');
+  salesRef = ref(db, 'kitflow/sales');
+
+  onValue(ref(db, '.info/connected'), snap => {
+    isCloudOnline = snap.val() === true;
+    if (isCloudOnline) {
+      setSyncBadge(true, 'Nuvem Ativa');
+      initFixedCatalogInCloud();
+    } else {
+      setSyncBadge(false, 'Modo Local / Offline');
+    }
+  });
+
+  onValue(skusRef, snap => {
+    const val = snap.val();
+    if (val && typeof val === 'object') {
+      skus = Object.entries(val)
+        .filter(([, item]) => item && typeof item === 'object')
+        .map(([key, item]) => ({
+          ...item,
+          id: key,
+          category: String(item.category || 'Geral').trim()
+        }));
+      saveLocalCache();
+      syncCatalogUI();
+      renderSkus();
+      renderSales();
+      renderReport();
+    }
+  });
+
+  onValue(salesRef, snap => {
+    const val = snap.val();
+    sales = val && typeof val === 'object'
+      ? Object.entries(val)
+          .filter(([, item]) => item && typeof item === 'object')
+          .map(([key, item]) => ({ ...item, id: key }))
+      : [];
+    saveLocalCache();
+    renderSales();
+    renderDashboard();
+    renderReport();
+  });
+} catch (err) {
+  console.error('Firebase indisponível, operando em modo local:', err);
+  setSyncBadge(false, 'Modo Local');
+}
+</script>
+
+</body>
+</html>
